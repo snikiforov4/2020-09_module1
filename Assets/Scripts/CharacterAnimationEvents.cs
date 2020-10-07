@@ -20,4 +20,15 @@ public class CharacterAnimationEvents : MonoBehaviour
     {
         character.SetState(Character.State.RunningFromEnemy);
     }
+
+    void PunchEnd()
+    {
+        character.SetState(Character.State.RunningFromEnemy);
+    }
+
+    void DoDamage()
+    {
+        Character targetCharacter = character.target.GetComponent<Character>();
+        targetCharacter.DoDamage();
+    }
 }
