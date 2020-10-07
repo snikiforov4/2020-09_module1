@@ -30,17 +30,26 @@ public class Character : MonoBehaviour
     public float runSpeed;
     public float distanceFromEnemy;
     public Transform target;
+    public TargetIndicator targetIndicator;
     State state;
     Animator animator;
     Vector3 originalPosition;
     Quaternion originalRotation;
+    Health health;
 
     void Start()
     {
         animator = GetComponentInChildren<Animator>();
+        health = GetComponent<Health>();
+        targetIndicator = GetComponentInChildren<TargetIndicator>(true);
         state = State.Idle;
         originalPosition = transform.position;
         originalRotation = transform.rotation;
+    }
+
+    public bool IsIdle()
+    {
+        return state == State.Idle;
     }
 
     public bool IsDead()
@@ -61,11 +70,13 @@ public class Character : MonoBehaviour
         if (IsDead())
             return;
 
-        state = State.BeginDying;
+        health.ApplyDamage(1.0f); // FIXME: захардкожено
+        if (health.current <= 0.0f)
+            state = State.BeginDying;
     }
 
     [ContextMenu("Attack")]
-    void AttackEnemy()
+    public void AttackEnemy()
     {
         if (IsDead())
             return;
