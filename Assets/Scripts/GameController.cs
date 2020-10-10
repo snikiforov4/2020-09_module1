@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
+    public CanvasGroup buttonPanel;
+    public Button button;
     public Character[] playerCharacter;
     public Character[] enemyCharacter;
     Character currentTarget;
@@ -46,14 +49,12 @@ public class GameController : MonoBehaviour
         return false;
     }
 
-    [ContextMenu("Player Attack")]
     void PlayerAttack()
     {
         waitingForInput = false;
     }
 
-    [ContextMenu("Next Target")]
-    void NextTarget()
+    public void NextTarget()
     {
         int index = Array.IndexOf(enemyCharacter, currentTarget);
         for (int i = 1; i < enemyCharacter.Length; i++) {
@@ -78,11 +79,13 @@ public class GameController : MonoBehaviour
                         break;
 
                     currentTarget.targetIndicator.gameObject.SetActive(true);
+                    Utility.SetCanvasGroupEnabled(buttonPanel, true);
 
                     waitingForInput = true;
                     while (waitingForInput)
                         yield return null;
 
+                    Utility.SetCanvasGroupEnabled(buttonPanel, false);
                     currentTarget.targetIndicator.gameObject.SetActive(false);
 
                     player.target = currentTarget.transform;
@@ -116,6 +119,8 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        button.onClick.AddListener(PlayerAttack);
+        Utility.SetCanvasGroupEnabled(buttonPanel, false);
         StartCoroutine(GameLoop());
     }
 
