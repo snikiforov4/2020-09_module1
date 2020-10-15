@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Character : MonoBehaviour
 {
@@ -13,6 +11,8 @@ public class Character : MonoBehaviour
         Attack,
         BeginShoot,
         Shoot,
+        Dying,
+        Dead,
     }
 
     public enum Weapon
@@ -25,7 +25,8 @@ public class Character : MonoBehaviour
     State state;
 
     public Weapon weapon;
-    public Transform target;
+    public GameObject target;
+    private Transform targetTransform;
     public float runSpeed;
     public float distanceFromEnemy;
     Vector3 originalPosition;
@@ -37,6 +38,7 @@ public class Character : MonoBehaviour
         state = State.Idle;
         originalPosition = transform.position;
         originalRotation = transform.rotation;
+        targetTransform = target.GetComponent<Transform>();
     }
 
     public void SetState(State newState)
@@ -47,6 +49,7 @@ public class Character : MonoBehaviour
     [ContextMenu("Attack")]
     void AttackEnemy()
     {
+        if (IsDead()) return;
         switch (weapon) {
             case Weapon.Bat:
                 state = State.RunningToEnemy;
@@ -91,7 +94,7 @@ public class Character : MonoBehaviour
 
             case State.RunningToEnemy:
                 animator.SetFloat("Speed", runSpeed);
-                if (RunTowards(target.position, distanceFromEnemy))
+                if (RunTowards(targetTransform.position, distanceFromEnemy))
                     state = State.BeginAttack;
                 break;
 
@@ -116,6 +119,32 @@ public class Character : MonoBehaviour
 
             case State.Shoot:
                 break;
+            
+            case State.Dying:
+                animator.SetTrigger("Death");
+                state = State.Dead;
+                break;
+        
+            case State.Dead:
+                break;
         }
+    }
+
+    public void HitTarget()
+    {
+        var targetCharacter = target.GetComponent<Character>();
+        if (targetCharacter.IsNotDead()) {
+            targetCharacter.SetState(State.Dying);
+        }
+    }
+
+    private bool IsNotDead()
+    {
+        return !IsDead();
+    }
+
+    private bool IsDead()
+    {
+        return state == State.Dying || state == State.Dead;
     }
 }
