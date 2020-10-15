@@ -19,6 +19,7 @@ public class Character : MonoBehaviour
     {
         Pistol,
         Bat,
+        Fist,
     }
 
     Animator animator;
@@ -52,6 +53,7 @@ public class Character : MonoBehaviour
         if (IsDead()) return;
         switch (weapon) {
             case Weapon.Bat:
+            case Weapon.Fist:
                 state = State.RunningToEnemy;
                 break;
             case Weapon.Pistol:
@@ -105,7 +107,7 @@ public class Character : MonoBehaviour
                 break;
 
             case State.BeginAttack:
-                animator.SetTrigger("MeleeAttack");
+                animator.SetTrigger((weapon == Weapon.Bat) ? "MeleeAttack" : "FistAttack");
                 state = State.Attack;
                 break;
 
