@@ -50,16 +50,22 @@ public class Character : MonoBehaviour
     [ContextMenu("Attack")]
     void AttackEnemy()
     {
-        if (IsDead()) return;
-        switch (weapon) {
-            case Weapon.Bat:
-            case Weapon.Fist:
-                state = State.RunningToEnemy;
-                break;
-            case Weapon.Pistol:
-                state = State.BeginShoot;
-                break;
+        if (InState(State.Idle) && GetTargetCharacter().IsNotDead()) {
+            switch (weapon) {
+                case Weapon.Bat:
+                case Weapon.Fist:
+                    state = State.RunningToEnemy;
+                    break;
+                case Weapon.Pistol:
+                    state = State.BeginShoot;
+                    break;
+            }
         }
+    }
+
+    private Character GetTargetCharacter()
+    {
+        return target.GetComponent<Character>();
     }
 
     bool RunTowards(Vector3 targetPosition, float distanceFromTarget)
@@ -121,12 +127,12 @@ public class Character : MonoBehaviour
 
             case State.Shoot:
                 break;
-            
+
             case State.Dying:
                 animator.SetTrigger("Death");
                 state = State.Dead;
                 break;
-        
+
             case State.Dead:
                 break;
         }
@@ -134,7 +140,7 @@ public class Character : MonoBehaviour
 
     public void HitTarget()
     {
-        var targetCharacter = target.GetComponent<Character>();
+        var targetCharacter = GetTargetCharacter();
         if (targetCharacter.IsNotDead()) {
             targetCharacter.SetState(State.Dying);
         }
@@ -148,5 +154,10 @@ public class Character : MonoBehaviour
     private bool IsDead()
     {
         return state == State.Dying || state == State.Dead;
+    }
+
+    private bool InState(State supposedState)
+    {
+        return state == supposedState;
     }
 }
