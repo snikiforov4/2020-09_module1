@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 public class MenuController : MonoBehaviour
 {
@@ -10,35 +7,42 @@ public class MenuController : MonoBehaviour
         None,
         Main,
         Settings,
+        NewGame,
     }
 
     public CanvasGroup mainScreen;
     public CanvasGroup settingsScreen;
+    public CanvasGroup newGameScreen;
 
     void SetCurrentScreen(Screen screen)
     {
         Utility.SetCanvasGroupEnabled(mainScreen, screen == Screen.Main);
         Utility.SetCanvasGroupEnabled(settingsScreen, screen == Screen.Settings);
+        Utility.SetCanvasGroupEnabled(newGameScreen, screen == Screen.NewGame);
     }
 
-    // Start is called before the first frame update
     void Start()
     {
         SetCurrentScreen(Screen.Main);
     }
 
-    public void StartNewGame()
+    public void StartNewGame(string levelName)
     {
         SetCurrentScreen(Screen.None);
-        LoadingScreen.instance.LoadScene("SampleScene");
+        LoadingScreen.instance.LoadScene(levelName);
     }
 
     public void OpenSettings()
     {
         SetCurrentScreen(Screen.Settings);
     }
+    
+    public void OpenNewGameMenu()
+    {
+        SetCurrentScreen(Screen.NewGame);
+    }
 
-    public void CloseSettings()
+    public void ReturnToMainMenu()
     {
         SetCurrentScreen(Screen.Main);
     }
