@@ -1,14 +1,17 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System;
-using System.Linq;
+﻿using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
-    public CanvasGroup buttonPanel;
-    public Button button;
+    private const string WinColor = "#97FF88";
+    private const string LostColor = "#C3000A";
+
+    public CanvasGroup gameControlsCanvasGroup;
+    public Button attackButton;
+    public TextMeshProUGUI gameResultText;
     public Character[] playerCharacter;
     public Character[] enemyCharacter;
     Character currentTarget;
@@ -17,31 +20,45 @@ public class GameController : MonoBehaviour
     Character FirstAliveCharacter(Character[] characters)
     {
         // LINQ: return enemyCharacter.FirstOrDefault(x => !x.IsDead());
-        foreach (var character in characters) {
+        foreach (var character in characters)
+        {
             if (!character.IsDead())
                 return character;
         }
+
         return null;
     }
 
     void PlayerWon()
     {
-        Debug.Log("Player won.");
+        SetGameResultTextColor(WinColor);
+        gameResultText.text = "You Won";
     }
 
     void PlayerLost()
     {
-        Debug.Log("Player lost.");
+        SetGameResultTextColor(LostColor);
+        gameResultText.text = "You Lost";
+    }
+
+    private void SetGameResultTextColor(string hexColor)
+    {
+        if (ColorUtility.TryParseHtmlString(hexColor, out Color newCol))
+        {
+            gameResultText.color = newCol;
+        }
     }
 
     bool CheckEndGame()
     {
-        if (FirstAliveCharacter(playerCharacter) == null) {
+        if (FirstAliveCharacter(playerCharacter) == null)
+        {
             PlayerLost();
             return true;
         }
 
-        if (FirstAliveCharacter(enemyCharacter) == null) {
+        if (FirstAliveCharacter(enemyCharacter) == null)
+        {
             PlayerWon();
             return true;
         }
@@ -57,9 +74,11 @@ public class GameController : MonoBehaviour
     public void NextTarget()
     {
         int index = Array.IndexOf(enemyCharacter, currentTarget);
-        for (int i = 1; i < enemyCharacter.Length; i++) {
+        for (int i = 1; i < enemyCharacter.Length; i++)
+        {
             int next = (index + i) % enemyCharacter.Length;
-            if (!enemyCharacter[next].IsDead()) {
+            if (!enemyCharacter[next].IsDead())
+            {
                 currentTarget.targetIndicator.gameObject.SetActive(false);
                 currentTarget = enemyCharacter[next];
                 currentTarget.targetIndicator.gameObject.SetActive(true);
@@ -71,21 +90,24 @@ public class GameController : MonoBehaviour
     IEnumerator GameLoop()
     {
         yield return null;
-        while (!CheckEndGame()) {
-            foreach (var player in playerCharacter) {
-                if (!player.IsDead()) {
+        while (!CheckEndGame())
+        {
+            foreach (var player in playerCharacter)
+            {
+                if (!player.IsDead())
+                {
                     currentTarget = FirstAliveCharacter(enemyCharacter);
                     if (currentTarget == null)
                         break;
 
                     currentTarget.targetIndicator.gameObject.SetActive(true);
-                    Utility.SetCanvasGroupEnabled(buttonPanel, true);
+                    Utility.SetCanvasGroupEnabled(gameControlsCanvasGroup, true);
 
                     waitingForInput = true;
                     while (waitingForInput)
                         yield return null;
 
-                    Utility.SetCanvasGroupEnabled(buttonPanel, false);
+                    Utility.SetCanvasGroupEnabled(gameControlsCanvasGroup, false);
                     currentTarget.targetIndicator.gameObject.SetActive(false);
 
                     player.target = currentTarget.transform;
@@ -98,8 +120,10 @@ public class GameController : MonoBehaviour
                 }
             }
 
-            foreach (var enemy in enemyCharacter) {
-                if (!enemy.IsDead()) {
+            foreach (var enemy in enemyCharacter)
+            {
+                if (!enemy.IsDead())
+                {
                     Character target = FirstAliveCharacter(playerCharacter);
                     if (target == null)
                         break;
@@ -116,17 +140,10 @@ public class GameController : MonoBehaviour
         }
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        button.onClick.AddListener(PlayerAttack);
-        Utility.SetCanvasGroupEnabled(buttonPanel, false);
+        attackButton.onClick.AddListener(PlayerAttack);
+        Utility.SetCanvasGroupEnabled(gameControlsCanvasGroup, false);
         StartCoroutine(GameLoop());
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }
