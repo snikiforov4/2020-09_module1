@@ -2,6 +2,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
@@ -10,6 +11,7 @@ public class GameController : MonoBehaviour
     private const string LostColor = "#C3000A";
 
     public CanvasGroup gameControlsCanvasGroup;
+    public CanvasGroup endGameCanvasGroup;
     public Button attackButton;
     public TextMeshProUGUI gameResultText;
     public Character[] playerCharacter;
@@ -33,12 +35,14 @@ public class GameController : MonoBehaviour
     {
         SetGameResultTextColor(WinColor);
         gameResultText.text = "You Won";
+        Utility.SetCanvasGroupEnabled(endGameCanvasGroup, true);
     }
 
     void PlayerLost()
     {
         SetGameResultTextColor(LostColor);
         gameResultText.text = "You Lost";
+        Utility.SetCanvasGroupEnabled(endGameCanvasGroup, true);
     }
 
     private void SetGameResultTextColor(string hexColor)
@@ -144,6 +148,12 @@ public class GameController : MonoBehaviour
     {
         attackButton.onClick.AddListener(PlayerAttack);
         Utility.SetCanvasGroupEnabled(gameControlsCanvasGroup, false);
+        Utility.SetCanvasGroupEnabled(endGameCanvasGroup, false);
         StartCoroutine(GameLoop());
+    }
+
+    public void BackToMainMenu()
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }

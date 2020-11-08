@@ -25,11 +25,11 @@ public class LoadingScreen : MonoBehaviour
         Utility.SetCanvasGroupEnabled(canvasGroup, false);
     }
 
-    IEnumerator Coroutine(string name)
+    IEnumerator Coroutine(string sceneName)
     {
         Utility.SetCanvasGroupEnabled(canvasGroup, true);
 
-        AsyncOperation operation = SceneManager.LoadSceneAsync(name);
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
         while (!operation.isDone) {
             progressBar.fillAmount = operation.progress;
             yield return null;
@@ -38,8 +38,8 @@ public class LoadingScreen : MonoBehaviour
         Utility.SetCanvasGroupEnabled(canvasGroup, false);
     }
 
-    public void LoadScene(string name)
+    public void LoadScene(string sceneName)
     {
-        StartCoroutine(Coroutine(name));
+        StartCoroutine(Coroutine(sceneName));
     }
 }
