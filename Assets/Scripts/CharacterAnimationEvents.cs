@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,14 +6,15 @@ public class CharacterAnimationEvents : MonoBehaviour
 {
     Character character;
 
+    // Start is called before the first frame update
     void Start()
     {
         character = GetComponentInParent<Character>();
     }
 
-    void ShootEnd()
+    void Attack()
     {
-        character.SetState(Character.State.Idle);
+        character.DoDamageToTarget();
     }
 
     void AttackEnd()
@@ -21,14 +22,13 @@ public class CharacterAnimationEvents : MonoBehaviour
         character.SetState(Character.State.RunningFromEnemy);
     }
 
-    void PunchEnd()
+    void Shoot()
     {
-        character.SetState(Character.State.RunningFromEnemy);
+        character.DoDamageToTarget();
     }
 
-    void DoDamage()
+    void ShootEnd()
     {
-        Character targetCharacter = character.target.GetComponent<Character>();
-        targetCharacter.DoDamage();
+        character.SetState(Character.State.Idle);
     }
 }
