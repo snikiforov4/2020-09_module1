@@ -28,97 +28,103 @@ public class Character : MonoBehaviour
     public Character target;
     public Weapon weapon;
     public float damage;
-    public string HitAudioName;
     private AudioPlay _audioPlay;
-    Animator animator;
-    Vector3 originalPosition;
-    Quaternion originalRotation;
-    State state = State.Idle;
+    private Animator _animator;
+    private Vector3 _originalPosition;
+    private Quaternion _originalRotation;
+    private State _state = State.Idle;
     private static readonly int Speed = Animator.StringToHash("speed");
 
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         _audioPlay = GetComponentInChildren<AudioPlay>();
-        animator = GetComponentInChildren<Animator>();
-        originalPosition = transform.position;
-        originalRotation = transform.rotation;
+        _animator = GetComponentInChildren<Animator>();
+        _originalPosition = transform.position;
+        _originalRotation = transform.rotation;
     }
 
     public void AttackEnemy()
     {
-        if (state != State.Idle || target.state == State.Dead)
+        if (_state != State.Idle || target._state == State.Dead)
             return;
 
-        switch (weapon) {
+        switch (weapon)
+        {
             case Weapon.Bat:
             case Weapon.Fist:
-                state = State.RunningToEnemy;
+                _state = State.RunningToEnemy;
                 break;
 
             case Weapon.Pistol:
-                state = State.BeginShoot;
+                _state = State.BeginShoot;
                 break;
         }
     }
 
     public bool IsIdle()
     {
-        return state == State.Idle;
+        return _state == State.Idle;
     }
 
     public bool IsDead()
     {
-        return state == State.Dead;
+        return _state == State.Dead;
     }
 
     public void SetState(State newState)
     {
-        state = newState;
+        _state = newState;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        switch (state) {
+        switch (_state)
+        {
             case State.Idle:
-                animator.SetFloat(Speed, 0.0f);
-                transform.rotation = originalRotation;
+                _animator.SetFloat(Speed, 0.0f);
+                transform.rotation = _originalRotation;
                 break;
 
             case State.RunningToEnemy:
-                animator.SetFloat(Speed, runSpeed);
+                _animator.SetFloat(Speed, runSpeed);
                 if (RunTowards(target.transform.position, distanceFromEnemy))
-                    state = State.BeginAttack;
+                    _state = State.BeginAttack;
                 break;
 
             case State.RunningFromEnemy:
-                animator.SetFloat(Speed, runSpeed);
-                if (RunTowards(originalPosition, 0.0f))
-                    state = State.Idle;
+                _animator.SetFloat(Speed, runSpeed);
+                if (RunTowards(_originalPosition, 0.0f))
+                    _state = State.Idle;
                 break;
 
             case State.BeginAttack:
-                animator.SetFloat(Speed, 0.0f);
-                switch (weapon) {
-                    case Weapon.Bat: animator.SetTrigger("attack"); break;
-                    case Weapon.Fist: animator.SetTrigger("fistAttack"); break;
+                _animator.SetFloat(Speed, 0.0f);
+                switch (weapon)
+                {
+                    case Weapon.Bat:
+                        _animator.SetTrigger("attack");
+                        break;
+                    case Weapon.Fist:
+                        _animator.SetTrigger("fistAttack");
+                        break;
                 }
-                state = State.Attack;
+
+                _state = State.Attack;
                 break;
 
             case State.Attack:
-                animator.SetFloat(Speed, 0.0f);
+                _animator.SetFloat(Speed, 0.0f);
                 break;
 
             case State.BeginShoot:
-                animator.SetFloat(Speed, 0.0f);
-                animator.SetTrigger("shoot");
-                state = State.Shoot;
+                _animator.SetFloat(Speed, 0.0f);
+                _animator.SetTrigger("shoot");
+                _state = State.Shoot;
                 break;
 
             case State.Shoot:
-                animator.SetFloat(Speed, 0.0f);
+                _animator.SetFloat(Speed, 0.0f);
                 break;
 
             case State.Dead:
@@ -136,7 +142,8 @@ public class Character : MonoBehaviour
         distance = (targetPosition - transform.position);
 
         Vector3 vector = direction * runSpeed;
-        if (vector.magnitude < distance.magnitude) {
+        if (vector.magnitude < distance.magnitude)
+        {
             transform.position += vector;
             return false;
         }
@@ -147,20 +154,51 @@ public class Character : MonoBehaviour
 
     public void Die()
     {
-        animator.SetTrigger("died");
+        _animator.SetTrigger("died");
         SetState(State.Dead);
     }
 
     public void DoDamageToTarget()
     {
-        HitEffectAnimation hitEffect = target.GetComponent<HitEffectAnimation>();
-        hitEffect.PlayEffect();
-        _audioPlay.Play(HitAudioName);
-        Health health = target.GetComponent<Health>();
-        if (health != null) {
-            health.ApplyDamage(damage);
-            if (health.current <= 0.0f)
-                target.Die();
+        PlayHitSound();
+        target.GetDamageFromEnemy(damage);
+    }
+
+    private void PlayHitSound()
+    {
+        var audioName = "";
+        switch (weapon)
+        {
+            case Weapon.Bat:
+                audioName = SoundNames.BatHit;
+                break;
+            case Weapon.Fist:
+                audioName = SoundNames.HandHit;
+                break;
+            case Weapon.Pistol:
+                audioName = SoundNames.GunHit;
+                break;
         }
+
+        _audioPlay.Play(audioName);
+    }
+
+    private void GetDamageFromEnemy(float receivedDamage)
+    {
+        GetComponent<HitEffectAnimation>().PlayEffect();
+        var health = GetComponent<Health>();
+        if (health != null)
+        {
+            health.ApplyDamage(receivedDamage);
+            if (health.current > 0.0f)
+            {
+                _audioPlay.Play(SoundNames.TakeDamage);
+            }
+            else
+            {
+                Die();
+                _audioPlay.Play(SoundNames.Die);
+            }
+        }   
     }
 }

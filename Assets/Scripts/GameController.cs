@@ -6,20 +6,21 @@ public class GameController : MonoBehaviour
 {
     public Character[] playerCharacters;
     public Character[] enemyCharacters;
-    Character currentTarget;
-    bool waitingPlayerInput;
+    private Character _currentTarget;
+    private bool _waitingPlayerInput;
+    private AudioPlay _audioPlay;
 
-    // Start is called before the first frame update
     void Start()
     {
+        _audioPlay = GetComponentInChildren<AudioPlay>();
         StartCoroutine(GameLoop());
     }
 
     [ContextMenu("Player Move")]
     public void PlayerMove()
     {
-        if (waitingPlayerInput)
-            waitingPlayerInput = false;
+        if (_waitingPlayerInput)
+            _waitingPlayerInput = false;
     }
 
     [ContextMenu("Switch character")]
@@ -27,7 +28,7 @@ public class GameController : MonoBehaviour
     {
         for (int i = 0; i < enemyCharacters.Length; i++) {
             // Найти текущего персонажа (i = индекс текущего)
-            if (enemyCharacters[i] == currentTarget) {
+            if (enemyCharacters[i] == _currentTarget) {
                 int start = i;
                 ++i;
                 // Идем в сторону конца массива и ищем живого персонажа
@@ -36,9 +37,9 @@ public class GameController : MonoBehaviour
                         continue;
 
                     // Нашли живого, меняем currentTarget
-                    currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(false);
-                    currentTarget = enemyCharacters[i];
-                    currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(true);
+                    _currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(false);
+                    _currentTarget = enemyCharacters[i];
+                    _currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(true);
 
                     return;
                 }
@@ -48,9 +49,9 @@ public class GameController : MonoBehaviour
                         continue;
 
                     // Нашли живого, меняем currentTarget
-                    currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(false);
-                    currentTarget = enemyCharacters[i];
-                    currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(true);
+                    _currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(false);
+                    _currentTarget = enemyCharacters[i];
+                    _currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(true);
 
                     return;
                 }
@@ -63,11 +64,13 @@ public class GameController : MonoBehaviour
     void PlayerWon()
     {
         Debug.Log("Player won");
+        _audioPlay.Play(SoundNames.Win);
     }
 
     void PlayerLost()
     {
         Debug.Log("Player lost");
+        _audioPlay.Play(SoundNames.Lose);
     }
 
     Character FirstAliveCharacter(Character[] characters)
@@ -105,16 +108,16 @@ public class GameController : MonoBehaviour
                 if (target == null)
                     break;
 
-                currentTarget = target;
-                currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(true);
+                _currentTarget = target;
+                _currentTarget.GetComponentInChildren<TargetIndicator>(true).gameObject.SetActive(true);
 
-                waitingPlayerInput = true;
-                while (waitingPlayerInput)
+                _waitingPlayerInput = true;
+                while (_waitingPlayerInput)
                     yield return null;
 
-                currentTarget.GetComponentInChildren<TargetIndicator>().gameObject.SetActive(false);
+                _currentTarget.GetComponentInChildren<TargetIndicator>().gameObject.SetActive(false);
 
-                player.target = currentTarget;
+                player.target = _currentTarget;
                 player.AttackEnemy();
                 while (!player.IsIdle())
                     yield return null;

@@ -23,3 +23,7 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 20b377534885f8a4f8ef588309f51620, type: 3}
   - name: Die
     clip: {fileID: 8300000, guid: 6789299ea9ce460479ee356feb633e6a, type: 3}
+  - name: Lose
+    clip: {fileID: 8300000, guid: 15a1c53e5c8e3714dbca8b72c86350a7, type: 3}
+  - name: Win
+    clip: {fileID: 8300000, guid: 3a3a611c6336a7647a8c1aa4fe94e042, type: 3}
