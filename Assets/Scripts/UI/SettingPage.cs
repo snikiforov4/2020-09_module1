@@ -1,59 +1,97 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 internal sealed class SettingPage : MonoBehaviour
 {
-    [SerializeField] private GameObject _root;
-    [SerializeField] private Button _buttonOpen;
-    [SerializeField] private Button _buttonClose;
-    [SerializeField] private Slider _slider;
-    [SerializeField] private Text _text;
-    [SerializeField] private AudioMixer _audioMixer;
-    [SerializeField] private string _name;
+    [SerializeField] private GameObject root;
+    [SerializeField] private Button buttonOpen;
+    [SerializeField] private Button buttonClose;
+    [SerializeField] private AudioMixer audioMixer;
+    [SerializeField] private SoundChannelSettings backgroundSettings;
+    [SerializeField] private SoundChannelSettings soundEffectsSettings;
+
+    [Serializable]
+    private sealed class SoundChannelSettings
+    {
+        public string mixerGroupName;
+        public Slider slider;
+        public Text textObject;
+        public string prefixText;
+
+        private UnityAction<float> _listener;
+
+        public void RegisterSliderListener(AudioMixer mixer)
+        {
+            if (_listener == null)
+            {
+                _listener = value =>
+                {
+                    var volume = Mathf.Log(value) * 20; 
+                    mixer.SetFloat(mixerGroupName, volume);
+                    SetText(this, volume);
+                };
+            }
+
+            slider.onValueChanged.AddListener(_listener);
+        }
+
+        public void RemoveSliderListener()
+        {
+            if (_listener != null)
+            {
+                slider.onValueChanged.RemoveListener(_listener);
+            }
+        }
+    }
 
     private void Start()
     {
-        var audioMixerSnapshot = _audioMixer.FindSnapshot("Snapshot - Copy");
+        var audioMixerSnapshot = audioMixer.FindSnapshot("Snapshot - Copy");
         audioMixerSnapshot.TransitionTo(0.0001f);
-        _root.SetActive(false);
+        root.SetActive(false);
     }
 
     private void OnEnable()
     {
-        _audioMixer.GetFloat(_name, out var value);
-        SetText(value);
-        _slider.value = value;
-        _buttonOpen.onClick.AddListener(OpenOnClick);
-        _buttonClose.onClick.AddListener(CloseOnClick);
-        _slider.onValueChanged.AddListener(SliderValueChanged);
+        OnEnableUpdateMixerGroupSettings(backgroundSettings);
+        OnEnableUpdateMixerGroupSettings(soundEffectsSettings);
+        buttonOpen.onClick.AddListener(OpenOnClick);
+        buttonClose.onClick.AddListener(CloseOnClick);
+        backgroundSettings.RegisterSliderListener(audioMixer);
+        soundEffectsSettings.RegisterSliderListener(audioMixer);
+    }
+
+    private void OnEnableUpdateMixerGroupSettings(SoundChannelSettings soundChannel)
+    {
+        audioMixer.GetFloat(soundChannel.mixerGroupName, out var volume);
+        SetText(soundChannel, volume);
+        var value = Mathf.Exp(volume / 20);
+        soundChannel.slider.value = value;
     }
 
     private void OnDisable()
     {
-        _buttonOpen.onClick.RemoveListener(OpenOnClick);
-        _buttonClose.onClick.RemoveListener(CloseOnClick);
-        _slider.onValueChanged.RemoveListener(SliderValueChanged);
-    }
-
-    private void SliderValueChanged(float value)
-    {
-        _audioMixer.SetFloat(_name, value);
-        SetText(value);
+        buttonOpen.onClick.RemoveListener(OpenOnClick);
+        buttonClose.onClick.RemoveListener(CloseOnClick);
+        backgroundSettings.RemoveSliderListener();
+        soundEffectsSettings.RemoveSliderListener();
     }
 
     private void OpenOnClick()
     {
-        _root.SetActive(true);
+        root.SetActive(true);
     }
 
     private void CloseOnClick()
     {
-        _root.SetActive(false);
+        root.SetActive(false);
     }
 
-    private void SetText(float value)
+    private static void SetText(SoundChannelSettings soundChannel, float value)
     {
-        _text.text = $"Фоновая музыка {value:F0}";
+        soundChannel.textObject.text = $"{soundChannel.prefixText} {value:F0}";
     }
 }
