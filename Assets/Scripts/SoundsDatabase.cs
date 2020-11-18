@@ -17,7 +17,16 @@ public class SoundsDatabase : ScriptableObject
 
     public AudioClip GetClip(string nameClip)
     {
-        return soundsDatabase.Where(dataSound => dataSound.name == nameClip).
-            Select(dataSound => dataSound.clip).FirstOrDefault();
+        return soundsDatabase
+            .Where(dataSound => dataSound.name == nameClip)
+            .Select(dataSound => dataSound.clip)
+            .FirstOrDefault();
+    }
+
+    public IEnumerable<string> GetAllClipNames()
+    {
+        return soundsDatabase
+            .Select(dataSound => dataSound.name)
+            .ToList();
     }
 }
